@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 
-import { workContractAddress } from '../config';
+import { contractaddress } from '../config';
 import WorkContract from '../artifacts/contracts/WorkContract.sol/WorkContract.json';
 
 let rpcEndpoint = null;
@@ -9,7 +9,6 @@ let rpcEndpoint = null;
 if (process.env.NEXT_PUBLIC_WORKSPACE_URL) {
   rpcEndpoint = process.env.NEXT_PUBLIC_WORKSPACE_URL;
 }
-
 
 const Index = () => {
   const [contract, setContract] = useState(null);
@@ -22,7 +21,7 @@ const Index = () => {
     const init = async () => {
       const provider = new ethers.providers.JsonRpcProvider(rpcEndpoint);
       const signer = await provider.getSigner();
-      const contract = new ethers.Contract(workContractAddress, WorkContract.abi, signer);
+      const contract = new ethers.Contract(contractaddress, WorkContract.abi, signer);
       
       // create fake wallet
       const mnemonic = "announce room limb pattern dry unit scale effort smooth jazz weasel alcohol"
@@ -36,7 +35,7 @@ const Index = () => {
 
     const fetchData = async () => {
       if (contract === null) return ;
-      const data = await contract.fetchWorkContracts();
+      const data = await contract.getAllItems();
       setItems(data);
     }
 
@@ -51,7 +50,7 @@ const Index = () => {
   };
 
   const handleSignContract = async (itemId) => {
-    const res = await contract.signAContract(prompt("Customer address: "), itemId); // todo remove
+    const res = await contract.signAContract(itemId); // todo remove
     await res.wait();
     setRefresh(x => x+1);
   };
@@ -70,10 +69,10 @@ const Index = () => {
             return (
               <li key={index}>
                 <p>Item Id: {item.itemId._hex}</p>
-                <p>Agency: {item.agency}</p>
-                <p>Customer: {item.customer}</p>
-                <p>Is Completed: {item.isCompleted ? 'YES' : 'NO'}</p>
-                { item.isCompleted ? null : <button onClick={() => handleSignContract(item.itemId._hex)}>Complete</button> }
+                <p>From: {item.from}</p>
+                <p>To: {item.to}</p>
+                <p>Is Completed: {item.signed ? 'YES' : 'NO'}</p>
+                { item.signed ? null : <button onClick={() => handleSignContract(item.itemId._hex)}>Complete</button> }
               </li>
             )
           })

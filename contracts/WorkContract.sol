@@ -4,62 +4,58 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 contract WorkContract {
   using Counters for Counters.Counter;
   Counters.Counter private itemIds;
-  address owner;
 
-  constructor() {
-    owner = msg.sender;
-  }
+  constructor() {}
 
-  struct Detail {
+  struct ContractInfo {
     uint256 itemId;
-    address customer;
-    address agency;
-    bool isCompleted;
+    address to;
+    address from;
+    bool signed;
   }
-  mapping(uint256 => Detail) private idToItem;
+  mapping(uint256 => ContractInfo) private items;
 
-  function addContract(address customer) public {
+  function addContract(address to) public {
     itemIds.increment();
     uint256 itemId = itemIds.current();
-
-    idToItem[itemId] = Detail(itemId, customer, msg.sender, false);
+    items[itemId] = ContractInfo(itemId, to, msg.sender, false);
   }
 
-  // todo remove address customer
-  function signAContract(address customer, uint256 itemId) public {
-    Detail storage currentItem = idToItem[itemId];
-    if (customer == currentItem.customer) {
-      currentItem.isCompleted = true;
-      idToItem[itemId] = currentItem;
+  function signAContract(uint256 itemId) public {
+    ContractInfo storage item = items[itemId];
+    if (item.to == msg.sender) {
+      item.signed = true;
+      items[itemId] = item;
     }
   }
 
-  function fetchWorkContracts() public view returns (Detail[] memory) {
-    uint256 totalItemCount = itemIds.current();
+  function getAllItems() public view returns (ContractInfo[] memory) {
     uint256 itemCount = 0;
     uint256 currentIndex = 0;
 
-    for (uint256 i = 0; i < totalItemCount; i++) {
-      if (idToItem[i + 1].agency == msg.sender) {
-        itemCount += 1;
-      }
+    for (uint256 i = 0; i < itemIds.current(); i++) { // get sizes of itemsIds
+      itemCount += 1;
     }
 
-    Detail[] memory items = new Detail[](itemCount);
-    for (uint256 i = 0; i < totalItemCount; i++) {
-      if (idToItem[i + 1].agency == msg.sender) {
-        uint256 currentId = i + 1;
-        Detail storage currentItem = idToItem[currentId];
-        items[currentIndex] = currentItem;
-        currentIndex += 1;
-      }
+    ContractInfo[] memory contracts = new ContractInfo[](itemCount);
+    
+    for (uint256 i = 0; i < itemIds.current(); i++) {
+      uint256 currentId = i + 1;
+      ContractInfo storage currentItem = items[currentId];
+    
+      contracts[currentIndex] = currentItem;
+      currentIndex += 1;
     }
 
-    return items;
+    return contracts;
+  }
+
+  function getSingleContract(uint256 itemId) public view returns (ContractInfo memory) {
+    return items[itemId];
   }
 }

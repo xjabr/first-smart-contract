@@ -1,1 +1,1 @@
-export const workContractAddress = '';
+export const contractaddress = '';

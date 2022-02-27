@@ -6,9 +6,7 @@ async function main() {
   const contract = await WorkContract.deploy();
   await contract.deployed();
 
-  const config = `
-    export const workContractAddress = "${contract.address}"
-  `;
+  const config = `export const contractaddress = "${contract.address}"`;
   const data = JSON.stringify(config)
   fs.writeFileSync('config.js', JSON.parse(data))
 };
